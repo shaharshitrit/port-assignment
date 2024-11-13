@@ -15,12 +15,10 @@ spec:
         app: apirest-web
     spec:
       containers:
-      #- image: enriquecatala/fastapi-helloworld:v1
-      - image: enriquecatala/fastapi-helloworld:latest
+      - image: 897722709068.dkr.ecr.eu-north-1.amazonaws.com/backend-app:latest  # ECR image path with tag
         name: fastapi-helloworld
         ports:
         - containerPort: 5000
-        # Simplemente para diferenciarlos facilmente les ponemos variables diferentes
         env:
         - name: HELLOWORLD_ENV
           value: "Pon aqui lo que te de la gana :)"
@@ -30,4 +28,3 @@ spec:
             memory: "100Mi"
           requests:
             cpu: 500m
-            
