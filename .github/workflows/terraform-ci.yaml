@@ -4,6 +4,9 @@ on:
   push:
     paths:
       - 'terraform/**'   # Run on changes within the terraform folder
+  pull_request:
+    paths:
+      - 'terraform/**'   # Run on changes within the terraform folder
 
 jobs:
   terraform:
