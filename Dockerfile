@@ -18,7 +18,7 @@ RUN python -m pip install -r requirements.txt
 COPY appconfig.conf /app/secrets/appconfig.conf
 
 WORKDIR /app
-COPY fastapi-helloworld /app
+COPY . /app
 
 # Creates a non-root user and adds permission to access the /app folder
 RUN useradd appuser && chown -R appuser /app

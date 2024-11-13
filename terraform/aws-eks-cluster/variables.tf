@@ -27,3 +27,8 @@ variable "max_node_group_size" {
   description = "The number of max nodes in the node group"
   default     = 5
 }
+
+variable "environment" {
+  description = "Working environment"
+  default     = "dev"
+}
