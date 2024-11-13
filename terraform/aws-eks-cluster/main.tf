@@ -23,6 +23,10 @@ module "eks" {
   vpc_id          = module.vpc.vpc_id
   subnet_ids      = module.vpc.private_subnets
 
+  cluster_endpoint_public_access  = true
+  cluster_endpoint_private_access = true
+  enable_cluster_creator_admin_permissions = true
+
   eks_managed_node_groups = {
     eks_nodes = {
       desired_size  = var.node_group_size
@@ -33,6 +37,23 @@ module "eks" {
   }
 }
 
+#module "aws_auth" {
+#  source  = "terraform-aws-modules/eks/aws//modules/aws-auth"
+#  version = "~> 20.0"
+#
+#  manage_aws_auth_configmap = true
+#  create_aws_auth_configmap = true
+#
+#   aws_auth_users = [
+#    {
+#      userarn  = "arn:aws:iam::897722709068:user/devops-candidate-user"
+#      username = "devops-candidate-user"
+#      groups   = ["system:masters"]
+#    },
+#  ]
+#}
+
+
 module "ecr" {
   source      = "../ecr"
   aws_region  = var.aws_region
@@ -41,4 +62,12 @@ module "ecr" {
 
 output "ecr_repository_url" {
   value = module.ecr.ecr_repository_url
+}
+
+#data "aws_eks_cluster" "cluster" {
+#  name = module.eks.cluster_name
+#}
+
+data "aws_eks_cluster_auth" "cluster" {
+  name = module.eks.cluster_name
 }

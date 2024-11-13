@@ -5,7 +5,7 @@ variable "aws_region" {
 
 variable "cluster_name" {
   description = "Name of the EKS cluster"
-  default     = "port-assignment-cluster"
+  default     = "assignment-cluster"
 }
 
 variable "node_group_size" {
