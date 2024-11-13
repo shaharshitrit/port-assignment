@@ -8,6 +8,11 @@ on:
     paths:
       - 'terraform/**'   # Run on changes within the terraform folder
 
+defaults:
+  run:
+    working-directory: ./terraform
+    shell: bash
+
 jobs:
   terraform:
     runs-on: ubuntu-latest
