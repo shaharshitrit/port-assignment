@@ -34,8 +34,8 @@ module "eks" {
 }
 
 module "ecr" {
-  source = "../ecr"
-  aws_region = var.aws_region
+  source      = "../ecr"
+  aws_region  = var.aws_region
   environment = var.environment
 }
 
