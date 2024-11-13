@@ -1,12 +1,11 @@
-name: Terraform CI
+name: Terraform CD
 
 on:
   push:
+    branches:
+      - main
     paths:
-      - 'terraform/**'   # Run on changes within the terraform folder
-  pull_request:
-    paths:
-      - 'terraform/**'   # Run on changes within the terraform folder
+      - 'terraform/**'   # Run only on changes within the terraform folder
 
 defaults:
   run:
@@ -39,13 +38,12 @@ jobs:
       - name: Terraform Init
         run: terraform init -backend-config="bucket=${{ secrets.TF_VAR_BUCKET }}" -backend-config="dynamodb_table=${{ secrets.TF_VAR_DYNAMODB_TABLE }}" -backend-config="region=${{ secrets.TF_VAR_REGION }}"
 
-      - name: Terraform Format Check
-        run: terraform fmt -check
-
-      - name: Terraform Validate
-        run: terraform validate
-
       - name: Terraform Plan
         run: terraform plan -out=tfplan -var-file="dev.tfvars"
+        env:
+          TF_VAR_REGION: ${{ secrets.TF_VAR_REGION }}
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve tfplan
         env:
           TF_VAR_REGION: ${{ secrets.TF_VAR_REGION }}
