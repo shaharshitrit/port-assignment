@@ -32,3 +32,13 @@ module "eks" {
     }
   }
 }
+
+module "ecr" {
+  source = "../ecr"
+  aws_region = var.aws_region
+  environment = var.environment
+}
+
+output "ecr_repository_url" {
+  value = module.ecr.ecr_repository_url
+}
