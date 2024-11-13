@@ -13,6 +13,8 @@ on:
     paths:
       - 'app/**'
       - 'Dockerfile'
+    branches-ignore:
+      - main
 
 jobs:
   build:
