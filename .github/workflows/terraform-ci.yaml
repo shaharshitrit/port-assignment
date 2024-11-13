@@ -4,11 +4,11 @@ on:
   push:
     paths:
       - 'terraform/**'   # Run on changes within the terraform folder
+    branches-ignore: # Ignore pushes to the main branch (typical after PR merges)
+      - main
   pull_request:
     paths:
       - 'terraform/**'   # Run on changes within the terraform folder
-    branches-ignore: # Ignore pushes to the main branch (typical after PR merges)
-      - main
 
 defaults:
   run:
