@@ -21,14 +21,14 @@ module "eks" {
   cluster_name    = var.cluster_name
   cluster_version = "1.31"
   vpc_id          = module.vpc.vpc_id
-  subnet_ids         = module.vpc.private_subnets
+  subnet_ids      = module.vpc.private_subnets
 
   eks_managed_node_groups = {
     eks_nodes = {
-      desired_size = var.node_group_size
-      max_size     = var.max_node_group_size
-      min_size     = var.min_node_group_size
-      instance_type    = var.node_instance_type
+      desired_size  = var.node_group_size
+      max_size      = var.max_node_group_size
+      min_size      = var.min_node_group_size
+      instance_type = var.node_instance_type
     }
   }
 }
