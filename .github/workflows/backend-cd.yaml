@@ -16,6 +16,10 @@ on:
           - minor
           - major
 
+permissions:
+  id-token: write
+  contents: write
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
@@ -28,6 +32,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
@@ -42,32 +48,28 @@ jobs:
       - name: Determine version
         id: version
         run: |
-          # Fetch the latest tags and get the current version
-          git fetch --tags
-          latest_tag=$(git describe --tags $(git rev-list --tags --max-count=1))
-      
-          # Extract major, minor, and patch parts of the latest version
-          IFS='.' read -r major minor patch <<< "${latest_tag#v}"
-      
-          # Determine the increment level (patch, minor, or major)
-          case "${{ github.event.inputs.increment }}" in
-            major)
-              major=$((major + 1))
-              minor=0
-              patch=0
-              ;;
-            minor)
-              minor=$((minor + 1))
-              patch=0
-              ;;
-            patch)
-              patch=$((patch + 1))
-              ;;
-          esac
-      
-          # Form the new version
-          new_version="v${major}.${minor}.${patch}"
-          echo "new_version=$new_version" >> $GITHUB_ENV
+          LATEST_TAG=$(git tag -l | cut -d 'v' -f 2 | sort --version-sort | tail -1)
+          
+          MAJ="$(echo $LATEST_TAG | cut -d '.' -f 1)"
+          MIN="$(echo $LATEST_TAG | cut -d '.' -f 2)"
+          PAT="$(echo $LATEST_TAG | cut -d '.' -f 3)"
+
+          # Increment version part
+          if [[ ${{ github.event.inputs.increment }} == "major" ]]; then
+              MAJ=$((MAJ+1))
+              VERSION="$MAJ.0.0"
+          elif [[ ${{ github.event.inputs.increment }} == "minor" ]]; then
+              MIN=$((MIN+1))
+              VERSION="$MAJ.$MIN.0"
+          else
+              PAT=$((PAT+1))
+              VERSION="$MAJ.$MIN.$PAT"
+          fi
+          
+          NEW_TAG="v$VERSION"
+          echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
+          git tag $NEW_TAG
+          git push origin $NEW_TAG
 
       - name: Log in to Amazon ECR
         run: |
@@ -75,18 +77,18 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t ${{ env.ECR_REPOSITORY }}:${{ env.new_version }} -t ${{ env.ECR_REPOSITORY }}:latest -f Dockerfile .
-          docker tag ${{ env.ECR_REPOSITORY }}:${{ env.new_version }} ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.new_version }}
+          docker build -t ${{ env.ECR_REPOSITORY }}:${{ env.NEW_TAG }} -t ${{ env.ECR_REPOSITORY }}:latest -f Dockerfile .
+          docker tag ${{ env.ECR_REPOSITORY }}:${{ env.NEW_TAG }} ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.NEW_TAG }}
           docker tag ${{ env.ECR_REPOSITORY }}:latest ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
 
       - name: Push Docker image to ECR
         run: |
-          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.new_version }}
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.NEW_TAG }}
           docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
 
-      - name: Create Git tag
+      - name: Update Kubernetes Deployment with New Tag
         run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-          git tag ${{ env.new_version }}
-          git push origin ${{ env.new_version }}
+          # Update the Kubernetes deployment to use the new image tag
+          aws eks update-kubeconfig --region ${{ env.AWS_REGION }} --name assignment-shahar-cluster
+          kubectl -n backend-app set image deployment/apirest-web fastapi-helloworld=${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.NEW_TAG }}
+
