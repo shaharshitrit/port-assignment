@@ -28,7 +28,7 @@ To advance this architecture into a production-ready environment, consider the f
 ### Infrastructure Enhancements
 
 1. **High Availability and Redundancy**: Improve the architecture’s resilience by deploying resources across multiple availability zones and implementing autoscaling policies to handle traffic fluctuations. Adjust VPC and subnet configurations to optimize for production traffic, isolating public and private subnets to limit exposure.
-2. **Application Load Balancer (ALB)**: Introduce AWS ALB for handling incoming traffic, enabling SSL termination and offloading encryption tasks from the cluster. ALB integrates with Kubernetes through the AWS Load Balancer Controller, allowing for path-based and host-based routing configurations to manage traffic to services securely. Set up health checks to ensure only healthy pods receive traffic, enhancing service availability.
+2. **Application Load Balancer (ALB)**: Introduce AWS Application Load Balancer (ALB) for handling incoming traffic, enabling SSL termination and offloading encryption tasks from the cluster. ALB integrates with Kubernetes through the AWS Load Balancer Controller, allowing for path-based and host-based routing configurations to manage traffic to services securely. Set up health checks to ensure only healthy pods receive traffic, enhancing service availability.
 
 ### DNS Management with Route 53
 
@@ -46,7 +46,6 @@ Additionally, automate DNS updates in Kubernetes by configuring **external-dns**
 
 ### Deployment Automation and Continuous Delivery with ArgoCD
 
-- **GitHub Actions Enhancements**: Expand GitHub Actions workflows to include security and dependency checks, as well as rollback mechanisms. Utilize Terraform’s remote state management (e.g., Terraform Cloud or S3 backend with state locking) to prevent concurrent changes, ensuring consistent infrastructure management.
 - **Continuous Delivery with ArgoCD**: Integrate **ArgoCD** as a GitOps tool for Kubernetes, enabling continuous delivery of application components from this GitHub repository to the Kubernetes cluster. ArgoCD will monitor the repository for changes in manifests and apply updates to the cluster, maintaining sync between the Git repository and the live environment. Configure ArgoCD with RBAC policies for secure access control and enable automatic rollbacks to improve resilience. The ArgoCD dashboard offers real-time visibility into application health, deployment status, and any discrepancies between the desired and actual states.
 
 ---
