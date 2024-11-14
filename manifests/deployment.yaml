@@ -3,7 +3,8 @@ kind: Deployment
 metadata:
   labels:
     app: apirest-web
-  name: apirest-web  
+  name: apirest-web
+  namespace: backend-app
 spec:
   replicas: 1
   selector:
