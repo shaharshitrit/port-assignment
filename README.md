@@ -16,6 +16,11 @@ This POC setup integrates infrastructure provisioning and CI/CD automation to en
 
 ---
 
+## Current Architecture Diagram
+![Architecture Diagram](./port-assignment-architecture.jpg)
+
+---
+
 ## Moving from POC to Production-Ready
 
 To advance this architecture into a production-ready environment, consider the following enhancements in network configuration, security, deployment automation, and monitoring.
