@@ -19,7 +19,7 @@ on:
 permissions:
   id-token: write
   contents: write
-  
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
@@ -85,3 +85,10 @@ jobs:
         run: |
           docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.NEW_TAG }}
           docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
+
+      - name: Update Kubernetes Deployment with New Tag
+        run: |
+          # Update the Kubernetes deployment to use the new image tag
+          aws eks update-kubeconfig --region ${{ env.AWS_REGION }} --name assignment-shahar-cluster
+          kubectl -n backend-app set image deployment/apirest-web fastapi-helloworld=${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.NEW_TAG }}
+
