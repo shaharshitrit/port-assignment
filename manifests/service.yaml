@@ -4,6 +4,7 @@ metadata:
   labels:
     app: apirest-web
   name: web-service
+  namespace: backend-app
 spec:
   ports:
   - name: http
