@@ -6,9 +6,6 @@ on:
       - 'terraform/**'   # Run on changes within the terraform folder
     branches-ignore: # Ignore pushes to the main branch (typical after PR merges)
       - main
-  pull_request:
-    paths:
-      - 'terraform/**'   # Run on changes within the terraform folder
 
 defaults:
   run:
@@ -48,6 +45,6 @@ jobs:
         run: terraform validate
 
       - name: Terraform Plan
-        run: terraform plan -out=tfplan -var-file="dev.tfvars"
+        run: terraform plan -out=tfplan -var-file="terraform.tfvars"
         env:
           TF_VAR_REGION: ${{ secrets.TF_VAR_REGION }}

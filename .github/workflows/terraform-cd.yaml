@@ -39,7 +39,7 @@ jobs:
         run: terraform init -backend-config="bucket=${{ secrets.TF_VAR_BUCKET }}" -backend-config="dynamodb_table=${{ secrets.TF_VAR_DYNAMODB_TABLE }}" -backend-config="region=${{ secrets.TF_VAR_REGION }}"
 
       - name: Terraform Plan
-        run: terraform plan -out=tfplan -var-file="dev.tfvars"
+        run: terraform plan -out=tfplan -var-file="terraform.tfvars"
         env:
           TF_VAR_REGION: ${{ secrets.TF_VAR_REGION }}
 
