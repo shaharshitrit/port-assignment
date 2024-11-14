@@ -32,3 +32,4 @@ variable "environment" {
   description = "Environment for resources"
   type        = string
 }
+
