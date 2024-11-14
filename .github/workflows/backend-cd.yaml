@@ -44,30 +44,30 @@ jobs:
         run: |
           # Fetch the latest tags and get the current version
           git fetch --tags
-          latest_tag=$(git describe --tags `git rev-list --tags --max-count=1`)
-          
-          # If no tags found, start with v1.0.0
-          if [ -z "$latest_tag" ]; then
-            echo "v1.0.0" > .version
-          else
-            echo $latest_tag > .version
-          fi
-          
-          # Increment version based on the input
-          version=$(cat .version | sed 's/^v//')
-          IFS='.' read -r major minor patch <<< "$version"
-          
-          case "${{ github.event.inputs.increment || 'patch' }}" in
-            major) major=$((major + 1)); minor=0; patch=0 ;;
-            minor) minor=$((minor + 1)); patch=0 ;;
-            patch) patch=$((patch + 1)) ;;
+          latest_tag=$(git describe --tags $(git rev-list --tags --max-count=1))
+      
+          # Extract major, minor, and patch parts of the latest version
+          IFS='.' read -r major minor patch <<< "${latest_tag#v}"
+      
+          # Determine the increment level (patch, minor, or major)
+          case "${{ github.event.inputs.increment }}" in
+            major)
+              major=$((major + 1))
+              minor=0
+              patch=0
+              ;;
+            minor)
+              minor=$((minor + 1))
+              patch=0
+              ;;
+            patch)
+              patch=$((patch + 1))
+              ;;
           esac
-
-          new_version="v$major.$minor.$patch"
-          echo $new_version > .version
+      
+          # Form the new version
+          new_version="v${major}.${minor}.${patch}"
           echo "new_version=$new_version" >> $GITHUB_ENV
-          echo "Current version: $latest_tag"
-          echo "New version: $new_version"
 
       - name: Log in to Amazon ECR
         run: |
