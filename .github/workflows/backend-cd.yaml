@@ -3,7 +3,18 @@ name: Backend App CD
 on:
   push:
     branches:
-      - main   # Only trigger on pushes to the main branch
+      - main  # Only trigger on pushes to the main branch
+  workflow_dispatch:
+    inputs:
+      increment:
+        description: "Version increment level"
+        required: false
+        default: "patch"  # Default increment is patch
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
 
 jobs:
   build-and-push:
@@ -12,7 +23,7 @@ jobs:
     env:
       ECR_REGISTRY: 897722709068.dkr.ecr.eu-north-1.amazonaws.com
       ECR_REPOSITORY: backend-app
-      IMAGE_TAG: ${{ github.sha }}  # Tag the image with the Git commit SHA
+      AWS_REGION: eu-north-1
 
     steps:
       - name: Checkout code
@@ -26,19 +37,56 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: "eu-north-1"
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Determine version
+        id: version
+        run: |
+          # Fetch the latest tags and get the current version
+          git fetch --tags
+          latest_tag=$(git describe --tags `git rev-list --tags --max-count=1`)
+          
+          # If no tags found, start with v1.0.0
+          if [ -z "$latest_tag" ]; then
+            echo "v1.0.0" > .version
+          else
+            echo $latest_tag > .version
+          fi
+          
+          # Increment version based on the input
+          version=$(cat .version | sed 's/^v//')
+          IFS='.' read -r major minor patch <<< "$version"
+          
+          case "${{ github.event.inputs.increment || 'patch' }}" in
+            major) major=$((major + 1)); minor=0; patch=0 ;;
+            minor) minor=$((minor + 1)); patch=0 ;;
+            patch) patch=$((patch + 1)) ;;
+          esac
+
+          new_version="v$major.$minor.$patch"
+          echo $new_version > .version
+          echo "new_version=$new_version" >> $GITHUB_ENV
+          echo "Current version: $latest_tag"
+          echo "New version: $new_version"
 
       - name: Log in to Amazon ECR
         run: |
-          aws ecr get-login-password --region eu-north-1 | docker login --username AWS --password-stdin ${{ env.ECR_REGISTRY }}
+          aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ env.ECR_REGISTRY }}
 
       - name: Build Docker image
         run: |
-          docker build -t ${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} -t ${{ env.ECR_REPOSITORY }}:latest -f Dockerfile .
-          docker tag ${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          docker build -t ${{ env.ECR_REPOSITORY }}:${{ env.new_version }} -t ${{ env.ECR_REPOSITORY }}:latest -f Dockerfile .
+          docker tag ${{ env.ECR_REPOSITORY }}:${{ env.new_version }} ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.new_version }}
           docker tag ${{ env.ECR_REPOSITORY }}:latest ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
 
       - name: Push Docker image to ECR
         run: |
-          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.new_version }}
           docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
+
+      - name: Create Git tag
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git tag ${{ env.new_version }}
+          git push origin ${{ env.new_version }}

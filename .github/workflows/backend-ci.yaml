@@ -1,10 +1,18 @@
 name: Backend App CI
 
-on: push
+on:
+  push:
+    branches-ignore:
+      - main   # Ignore pushes to the main branch (typical after PR merges)
 
 jobs:
-  build:
+  build-and-push:
     runs-on: ubuntu-latest
+
+    env:
+      ECR_REGISTRY: 897722709068.dkr.ecr.eu-north-1.amazonaws.com
+      ECR_REPOSITORY: backend-app
+      IMAGE_TAG: ${{ github.sha }}  # Tag the image with the Git commit SHA
 
     steps:
       - name: Checkout code
@@ -13,6 +21,24 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: "eu-north-1"
+
+      - name: Log in to Amazon ECR
+        run: |
+          aws ecr get-login-password --region eu-north-1 | docker login --username AWS --password-stdin ${{ env.ECR_REGISTRY }}
+
       - name: Build Docker image
         run: |
-          docker build -t backend-app:latest -f Dockerfile .
+          docker build -t ${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} -t ${{ env.ECR_REPOSITORY }}:latest -f Dockerfile .
+          docker tag ${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          docker tag ${{ env.ECR_REPOSITORY }}:latest ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
+
+      - name: Push Docker image to ECR
+        run: |
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
