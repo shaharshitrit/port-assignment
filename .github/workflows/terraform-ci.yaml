@@ -12,7 +12,7 @@ on:
 
 defaults:
   run:
-    working-directory: ./terraform/aws-eks-cluster
+    working-directory: ./terraform
     shell: bash
 
 jobs:
