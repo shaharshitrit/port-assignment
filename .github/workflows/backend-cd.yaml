@@ -51,10 +51,10 @@ jobs:
           PAT="$(echo $LATEST_TAG | cut -d '.' -f 3)"
 
           # Increment version part
-          if [[ ${{ github.event.inputs.bump }} == "major" ]]; then
+          if [[ ${{ github.event.inputs.increment }} == "major" ]]; then
               MAJ=$((MAJ+1))
               VERSION="$MAJ.0.0"
-          elif [[ ${{ github.event.inputs.bump }} == "minor" ]]; then
+          elif [[ ${{ github.event.inputs.increment }} == "minor" ]]; then
               MIN=$((MIN+1))
               VERSION="$MAJ.$MIN.0"
           else
