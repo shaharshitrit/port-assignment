@@ -44,9 +44,9 @@ jobs:
         run: |
           # Fetch the latest tags and get the current version
           git fetch --tags
-          LATEST_TAG=$(git describe --tags $(git rev-list --tags --max-count=1))
+          LATEST_TAG=$(git tag -l | cut -d 'v' -f 2 | sort --version-sort | tail -1)
           
-          MAJ="$(echo $LATEST_TAG | cut -d '.' -f 1 | cut -d 'v' -f 2)"
+          MAJ="$(echo $LATEST_TAG | cut -d '.' -f 1)"
           MIN="$(echo $LATEST_TAG | cut -d '.' -f 2)"
           PAT="$(echo $LATEST_TAG | cut -d '.' -f 3)"
 
