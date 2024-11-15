@@ -32,9 +32,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.TF_VAR_REGION }}
 
-      - name: List files in terraform directory
-        run: ls -la
-
       - name: Terraform Init
         run: terraform init -backend-config="bucket=${{ secrets.TF_VAR_BUCKET }}" -backend-config="dynamodb_table=${{ secrets.TF_VAR_DYNAMODB_TABLE }}" -backend-config="region=${{ secrets.TF_VAR_REGION }}"
 
