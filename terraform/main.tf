@@ -1,18 +1,10 @@
-#data "aws_eks_cluster" "cluster" {
-#  name = module.eks.cluster_name
-#}
-#
-#data "aws_eks_cluster_auth" "cluster" {
-#  name = module.eks.cluster_name
-#}
-
 module "vpc" {
   source               = "./modules/vpc"
   name                 = "${var.cluster_name}-vpc"
-  cidr                 = "10.0.0.0/16"
+  cidr                 = var.vpc_cidr
   azs                  = ["${var.aws_region}a", "${var.aws_region}b"]
-  private_subnets      = ["10.0.1.0/24", "10.0.2.0/24"]
-  public_subnets       = ["10.0.3.0/24", "10.0.4.0/24"]
+  private_subnets      = var.vpc_private_subnets
+  public_subnets       = var.vpc_public_subnets
   enable_nat_gateway   = true
   single_nat_gateway   = true
   enable_dns_hostnames = true
@@ -21,7 +13,7 @@ module "vpc" {
 module "eks" {
   source              = "./modules/eks"
   cluster_name        = var.cluster_name
-  cluster_version     = "1.31"
+  cluster_version     = var.eks_version
   vpc_id              = module.vpc.vpc_id
   subnet_ids          = module.vpc.private_subnets
   node_group_size     = var.node_group_size
