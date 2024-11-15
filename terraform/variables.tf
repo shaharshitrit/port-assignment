@@ -33,3 +33,22 @@ variable "environment" {
   type        = string
 }
 
+variable "vpc_cidr" {
+  description = "VPC cidr ip"
+  type        = string
+}
+
+variable "vpc_private_subnets" {
+  description = "VPC private subnet ips"
+  type        = any
+}
+
+variable "vpc_public_subnets" {
+  description = "VPC public subnet ips"
+  type        = any
+}
+
+variable "eks_version" {
+  description = "eks k8s version"
+  type        = string
+}
